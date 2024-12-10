@@ -15,7 +15,7 @@ name = "feedwave"
 
 [dependencies]
 actix-web = "4.0.0"
-chrono = "0.4.39"
+chrono = { version = "0.4.39", default-features = false, features = ["clock"] }
 config = "0.14.1"
 serde = { version = "1.0.215", features = ["derive"] }
 tokio = { version = "1.42.0", features = ["macros", "rt-multi-thread"] }
