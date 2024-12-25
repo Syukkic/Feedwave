@@ -1,4 +1,5 @@
 use feedwave::configuration::{get_configuration, DatabaseSettings};
+use feedwave::email_client::EmailClient;
 use feedwave::starter::run;
 use feedwave::telemetry::{get_subscriber, init_subscriber};
 use once_cell::sync::Lazy;
@@ -136,7 +137,13 @@ async fn spawn_app() -> TestApp {
 
     let connection_pool = configure_database(&configuration.database).await;
 
-    let server = run(listener, connection_pool.clone()).expect("Failed to bind address");
+    let sender_email = configuration
+        .email_client
+        .sender()
+        .expect("Invalid sender email address.");
+    let email_client = EmailClient::new(configuration.email_client.base_url, sender_email);
+    let server =
+        run(listener, connection_pool.clone(), email_client).expect("Failed to bind address");
 
     tokio::spawn(server);
 
