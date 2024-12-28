@@ -3,6 +3,7 @@ use reqwest::Client;
 use secrecy::{ExposeSecret, SecretString};
 use serde::Serialize;
 
+#[derive(Debug)]
 pub struct EmailClient {
     http_client: Client,
     base_url: String,
@@ -112,8 +113,6 @@ mod tests {
             let result: Result<serde_json::Value, _> = serde_json::from_slice(&request.body);
 
             if let Ok(body) = result {
-                dbg!(&body);
-
                 body.get("From").is_some()
                     && body.get("To").is_some()
                     && body.get("Subject").is_some()
