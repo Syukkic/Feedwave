@@ -1,5 +1,4 @@
 use crate::helpers::spawn_app;
-use reqwest;
 use wiremock::matchers::{method, path};
 use wiremock::{Mock, ResponseTemplate};
 
@@ -25,10 +24,9 @@ async fn the_link_returned_by_subscribe_returns_a_200_if_called() {
         .mount(&app.email_server)
         .await;
 
-    // https://docs.rs/wiremock/0.6.2/wiremock/struct.MockServer.html#method.received_requests
-    reqwest::get(&app.email_server.uri()).await.unwrap();
-
     app.post_subscriptions(body.into()).await;
+
+    dbg!(&app.email_server.received_requests().await.unwrap());
     let email_request = &app.email_server.received_requests().await.unwrap()[0];
     let confirmation_links = app.get_confirmation_links(email_request);
 
