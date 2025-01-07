@@ -1,3 +1,6 @@
+use crate::routes::error_chain_fmt;
+use actix_web::http::StatusCode;
+use actix_web::ResponseError;
 use actix_web::{web, HttpResponse};
 use sqlx::PgPool;
 use uuid::Uuid;
@@ -5,6 +8,29 @@ use uuid::Uuid;
 #[derive(serde::Deserialize)]
 pub struct Parameters {
     subscription_token: String,
+}
+
+#[derive(thiserror::Error)]
+pub enum ComfirmationError {
+    #[error(transparent)]
+    UnexpectedError(#[from] anyhow::Error),
+    #[error("There is no subscriber associated with the provided token.")]
+    UnknownToken,
+}
+
+impl std::fmt::Debug for ComfirmationError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        error_chain_fmt(self, f)
+    }
+}
+
+impl ResponseError for ComfirmationError {
+    fn status_code(&self) -> StatusCode {
+        match self {
+            Self::UnknownToken => StatusCode::UNAUTHORIZED,
+            Self::UnexpectedError(_) => StatusCode::INTERNAL_SERVER_ERROR,
+        }
+    }
 }
 
 #[tracing::instrument(name = "Confirm a pending subscriber", skip(parameters, pool))]
